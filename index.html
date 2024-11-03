@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>常微分方程式のシミュレータ教材</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <div class="box1">
+    <div class="odeForm">
+      <select name="equation" id="equation">
+        <option value="1">y=-2x</option>
+        <option value="2">y=sin(x)</option>
+        <option value="3">y=sin(x)*cos(x)-y</option>
+      </select>
+      <input type="text" id="stepSize" value="0.1" />
+      <input type="text" id="precision" value="0.000001" />
+      <button id="start" type="submit">start</button>
+    </div>
+    <h3>オイラー法の誤差の大きい順に上位5つの箇所</h3>
+    <table id="eulerErrorTable">
+      <thead>
+        <tr>
+          <th>x</th>
+          <th>オイラー法の誤差</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="box2">
+    <canvas id="odeChart" width="1000" height="400"></canvas>
+    <canvas id="zoomChart" width="1000" height="400"></canvas>
+  </div>
+  <script src="script.js"></script>
+</body>
+
+</html>
