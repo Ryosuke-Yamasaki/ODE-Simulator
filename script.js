@@ -1,7 +1,7 @@
 // 初期値とパラメータの設定
 let y0 = 1; // 初期値 y(0)
 let x0 = 0; // 初期時刻
-let dx = 0.01; // x刻み
+let dx = 0.1; // x刻み
 let X = 10; // シミュレーション終了時刻
 const EPS = 1e-10; // 丸め誤差の許容範囲
 
@@ -25,28 +25,32 @@ function eulerMethod(y0, x0, dx, X) {
 }
 
 // 理論値
-function exactSolution(y0, x0, dx, X) {
+function RK4Method(y0, x0, dx, X) {
   let x = x0;
-  let points = [];
+  let y = y0;
+  let points = [{ x: x, y: y }];
 
-  // 理論解は次のように求められる
-  // y(x) = -0.5 * cos(2x) + C (Cは初期条件により決まる)
-  // y(0) = 0 より C = 0.5
-  const C = 1;
-  while (x <= X) {
-    let y = 2 * Math.exp(-x) + Math.sin(x) - Math.cos(x);
-    points.push({ x: x, y: y });
+  while (x < X) {
+    const k1 = dydx(x, y);
+    const k2 = dydx(x + dx / 2, y + (dx / 2) * k1);
+    const k3 = dydx(x + dx / 2, y + (dx / 2) * k2);
+    const k4 = dydx(x + dx, y + dx * k3);
+
+    // 次の y の値を計算
+    y += (dx / 6) * (k1 + 2 * k2 + 2 * k3 + k4);
     x += dx;
+
+    points.push({ x: x, y: y });
   }
   return points;
 }
 
 // 各手法で計算
 const eulerPoints = eulerMethod(y0, x0, dx, X);
-const exactPoints = exactSolution(y0, x0, dx, X);
+const exactPoints = RK4Method(y0, x0, dx, X);
 
 // グラフ用データに変換
-const labels = exactPoints.map((p) => p.x.toFixed(2));
+const labels = exactPoints.map((p) => p.x.toFixed(3));
 const eulerData = eulerPoints.map((p) => p.y);
 const exactData = exactPoints.map((p) => p.y);
 
@@ -117,7 +121,7 @@ topEulerErrors.forEach((item) => {
   eulerTableBody.appendChild(row);
 });
 
-// 誤差が最大のxを取得（オイラー法とルンゲクッタ法で最大のものを選ぶ）
+// 誤差が最大のxを取得
 const maxEulerErrorX = topEulerErrors[0].x;
 const maxErrorX = Math.max(maxEulerErrorX);
 
