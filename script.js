@@ -1,13 +1,13 @@
 // 初期値とパラメータの設定
 let y0 = 1; // 初期値 y(0)
 let x0 = 0; // 初期時刻
-let dx = 0.1; // x刻み
-let X = 10; // シミュレーション終了時刻
+let dx = 0.001; // x刻み
+let X = 20; // シミュレーション終了時刻
 const EPS = 1e-10; // 丸め誤差の許容範囲
 
-// 微分方程式 dy/dx = sin(2x)
+// 導関数
 function dydx(x, y) {
-  return 2 * Math.sin(x) - y;
+  return Math.sin((1 / 2) * x);
 }
 
 // オイラー法
@@ -36,7 +36,6 @@ function RK4Method(y0, x0, dx, X) {
     const k3 = dydx(x + dx / 2, y + (dx / 2) * k2);
     const k4 = dydx(x + dx, y + dx * k3);
 
-    // 次の y の値を計算
     y += (dx / 6) * (k1 + 2 * k2 + 2 * k3 + k4);
     x += dx;
 
@@ -45,12 +44,20 @@ function RK4Method(y0, x0, dx, X) {
   return points;
 }
 
+// 試行回数を計算
+function trialCount(dx, X) {
+  return (X / dx).toFixed(0);
+}
+
+// 表示する桁数の計算
+const decimalPlaces = dx.toString().split(".")[1].length;
+
 // 各手法で計算
 const eulerPoints = eulerMethod(y0, x0, dx, X);
 const exactPoints = RK4Method(y0, x0, dx, X);
 
 // グラフ用データに変換
-const labels = exactPoints.map((p) => p.x.toFixed(3));
+const labels = exactPoints.map((p) => p.x);
 const eulerData = eulerPoints.map((p) => p.y);
 const exactData = exactPoints.map((p) => p.y);
 
@@ -61,7 +68,7 @@ const eulerError = eulerData.map((y, i) =>
 
 // 誤差をオブジェクトの配列にまとめる
 const errorData = labels.map((x, i) => ({
-  x: x,
+  x: x.toFixed(decimalPlaces),
   eulerError: eulerError[i],
 }));
 
@@ -76,7 +83,7 @@ const ctx = document.getElementById("odeChart").getContext("2d");
 new Chart(ctx, {
   type: "line",
   data: {
-    labels: labels,
+    labels: labels.map((label) => label.toFixed(decimalPlaces)),
     datasets: [
       {
         label: "オイラー法",
@@ -84,6 +91,7 @@ new Chart(ctx, {
         borderColor: "rgba(255, 99, 132, 1)",
         backgroundColor: "rgba(255, 99, 132, 0.2)",
         fill: false,
+        pointRadius: 0,
       },
       {
         label: "理論値",
@@ -91,6 +99,7 @@ new Chart(ctx, {
         borderColor: "rgba(75, 192, 192, 1)",
         backgroundColor: "rgba(75, 192, 192, 0.2)",
         fill: false,
+        pointRadius: 0,
       },
     ],
   },
@@ -102,6 +111,11 @@ new Chart(ctx, {
     },
   },
 });
+
+//　試行回数を表示
+const countText = document.getElementById("trialCount");
+const count = trialCount(dx, X);
+countText.textContent = count;
 
 // オイラー法の誤差の大きい順に上位5つを表形式で表示
 const eulerTableBody = document
