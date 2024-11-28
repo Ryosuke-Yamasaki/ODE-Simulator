@@ -1,10 +1,3 @@
-// 初期値とパラメータの設定
-let y0 = 1; // 初期値 y(0)
-let x0 = 0; // 初期時刻
-let dx = 0.001; // x刻み
-let X = 10; // シミュレーション終了時刻
-const EPS = 1e-10; // 丸め誤差の許容範囲
-
 // 既存のチャートインスタンスを保持する変数
 let odeChartInstance = null;
 let zoomChartInstance = null;
@@ -62,12 +55,22 @@ function trialCount(dx, X) {
   return (X / dx).toFixed(0);
 }
 
-// 表示する桁数の計算
-const decimalPlaces = dx.toString().split(".")[1].length;
-
 // "start"ボタンがクリックされたときの処理
 document.getElementById("start").addEventListener("click", () => {
-  const equation = document.getElementById("equation").value; // 選択された関数
+  let y0 = 1; // 初期値 y(0)
+  let x0 = 0; // 初期時刻
+  let X = 10; // シミュレーション終了時刻
+  const EPS = 1e-10;
+
+  const stepSizeInput = parseFloat(document.getElementById("stepSize").value);
+  const dx = isNaN(stepSizeInput) || stepSizeInput <= 0 ? 0.001 : stepSizeInput;
+
+  const precisionInput = parseFloat(document.getElementById("precision").value);
+  const precision =
+    isNaN(precisionInput) || precisionInput <= 0 ? 0.01 : precisionInput;
+
+  const decimalPlaces = dx.toString().split(".")[1]?.length || 0;
+  const equation = document.getElementById("equation").value;
   const dydx = getDydx(equation);
 
   // 各手法で計算
@@ -98,15 +101,9 @@ document.getElementById("start").addEventListener("click", () => {
   // 上位5つの誤差を抽出
   const topEulerErrors = sortedEulerErrors.slice(0, 5);
 
-  // 既存のチャートを破棄（もし存在するなら）
-  if (odeChartInstance) {
-    odeChartInstance.destroy();
-  }
-  if (zoomChartInstance) {
-    zoomChartInstance.destroy();
-  }
+  if (odeChartInstance) odeChartInstance.destroy();
+  if (zoomChartInstance) zoomChartInstance.destroy();
 
-  // Chart.jsで解のグラフを表示
   const ctx = document.getElementById("odeChart").getContext("2d");
   odeChartInstance = new Chart(ctx, {
     type: "line",
@@ -136,22 +133,19 @@ document.getElementById("start").addEventListener("click", () => {
     options: {
       responsive: false,
       scales: {
-        x: { title: { display: false, text: "x" } },
-        y: { title: { display: false, text: "y" } },
+        x: { title: { display: false } },
+        y: { title: { display: false } },
       },
     },
   });
 
-  // 試行回数を表示
-  const countText = document.getElementById("trialCount");
-  const count = trialCount(dx, X);
-  countText.textContent = count;
+  document.getElementById("trialCount").textContent = trialCount(dx, X);
 
   // オイラー法の誤差の大きい順に上位5つを表形式で表示
   const eulerTableBody = document
     .getElementById("eulerErrorTable")
     .getElementsByTagName("tbody")[0];
-  eulerTableBody.innerHTML = ""; // テーブル内容をクリア
+  eulerTableBody.innerHTML = "";
   topEulerErrors.forEach((item) => {
     const row = document.createElement("tr");
 
@@ -166,9 +160,11 @@ document.getElementById("start").addEventListener("click", () => {
     eulerTableBody.appendChild(row);
   });
 
-  // 誤差が最大のxを取得
-  const maxEulerErrorX = topEulerErrors[0].x;
-  const maxErrorX = Math.max(maxEulerErrorX);
+  // 最大誤差を取得
+  const maxError = Math.max(...eulerError);
+
+  // 誤差が最大のxを取得 (数値として扱う)
+  const maxErrorX = parseFloat(topEulerErrors[0].x);
 
   // 拡大する範囲の開始と終了
   const zoomStartX = Math.max(x0, maxErrorX - dx * 5);
@@ -182,6 +178,11 @@ document.getElementById("start").addEventListener("click", () => {
   const zoomExactData = exactPoints
     .filter((p) => p.x >= zoomStartX && p.x <= zoomEndX)
     .map((p) => p.y);
+
+  // 既存の拡大チャートを破棄
+  if (zoomChartInstance) {
+    zoomChartInstance.destroy();
+  }
 
   // Chart.jsで拡大グラフを追加
   const zoomCtx = document.getElementById("zoomChart").getContext("2d");
@@ -214,4 +215,13 @@ document.getElementById("start").addEventListener("click", () => {
       },
     },
   });
+
+  if (maxError > precision) {
+    alert(
+      `指定された精度 (${precision}) を満たしていません。最大誤差は ${maxError.toFixed(
+        10
+      )} です。刻み幅を小さくして再試行してください。`
+    );
+    return;
+  }
 });
