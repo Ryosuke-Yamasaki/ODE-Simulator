@@ -12,12 +12,15 @@
 <body>
   <div class="box1">
     <div class="odeForm">
+      <label for="equation">導関数を選択</label>
       <select name="equation" id="equation">
         <option value="1">y=-2x</option>
         <option value="2">y=sin(x)</option>
         <option value="3">y=sin(x)*cos(x)-y</option>
       </select>
+      <label for="stepSize">微小区間の幅</label>
       <input type="text" id="stepSize" value="0.1">
+      <label for="precision">必要な精度</label>
       <input type="text" id="precision" value="0.01">
       <button id="start" type="submit">start</button>
     </div>
