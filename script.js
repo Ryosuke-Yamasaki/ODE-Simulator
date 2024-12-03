@@ -217,11 +217,16 @@ document.getElementById("start").addEventListener("click", () => {
   });
 
   if (maxError > precision) {
-    alert(
-      `指定された精度 (${precision}) を満たしていません。最大誤差は ${maxError.toFixed(
-        10
-      )} です。刻み幅を小さくして再試行してください。`
-    );
-    return;
+    const precisionMessageElement = document.getElementById("precisionMessage");
+    precisionMessageElement.textContent = `指定された精度 (${precision}) を満たしていません。最大誤差は ${maxError.toFixed(
+      10
+    )} です。刻み幅を小さくして再試行してください。`;
+    precisionMessageElement.style.color = "red";
+  } else {
+    const precisionMessageElement = document.getElementById("precisionMessage");
+    precisionMessageElement.textContent = `指定された精度 (${precision}) を満たしています。最大誤差は ${maxError.toFixed(
+      10
+    )} です。`;
+    precisionMessageElement.style.color = "green";
   }
 });
