@@ -2,6 +2,9 @@
 let odeChartInstance = null;
 let zoomChartInstance = null;
 
+// 前回の結果を保持する変数
+let topEulerErrors = [];
+
 // 導関数を動的に取得
 function getDydx(equation) {
   switch (equation) {
@@ -55,7 +58,12 @@ function trialCount(dx, X) {
   return (X / dx).toFixed(0);
 }
 
-// "start"ボタンがクリックされたときの処理
+// 導関数が変更されたときの処理
+document.getElementById("equation").addEventListener("change", () => {
+  topEulerErrors = [];
+});
+
+// Startボタンがクリックされたときの処理
 document.getElementById("start").addEventListener("click", () => {
   let y0 = 1; // 初期値 y(0)
   let x0 = 0; // 初期時刻
@@ -98,8 +106,27 @@ document.getElementById("start").addEventListener("click", () => {
     (a, b) => b.eulerError - a.eulerError
   );
 
+  // 前回の結果を表示
+  const lastResultTableBody = document
+    .getElementById("lastResults")
+    .getElementsByTagName("tbody")[0];
+  lastResultTableBody.innerHTML = "";
+  topEulerErrors.forEach((item) => {
+    const row = document.createElement("tr");
+
+    const xCell = document.createElement("td");
+    xCell.textContent = item.x;
+    row.appendChild(xCell);
+
+    const eulerErrorCell = document.createElement("td");
+    eulerErrorCell.textContent = item.eulerError.toFixed(10);
+    row.appendChild(eulerErrorCell);
+
+    lastResultTableBody.appendChild(row);
+  });
+
   // 上位5つの誤差を抽出
-  const topEulerErrors = sortedEulerErrors.slice(0, 5);
+  topEulerErrors = sortedEulerErrors.slice(0, 5);
 
   if (odeChartInstance) odeChartInstance.destroy();
   if (zoomChartInstance) zoomChartInstance.destroy();
